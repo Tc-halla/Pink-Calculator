@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pink Scientific Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #ffe6f0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .calculator {
+      background-color: #ff69b4;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px #ff4da6;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .equation-preview {
+      font-size: 1rem;
+      color: #660033;
+      height: 20px;
+      margin-bottom: 5px;
+    }
+
+    .display {
+      background-color: #fff0f6;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 1.8rem;
+      text-align: right;
+      margin-bottom: 10px;
+      min-height: 50px;
+      overflow-x: auto;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      padding: 15px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      background-color: #ff85b8;
+      box-shadow: 0 4px #d65c94;
+      transition: background 0.2s;
+    }
+
+    button.operator {
+      background-color: #ff4d94;
+    }
+
+    button.equal {
+      background-color: #ff1a75;
+    }
+
+    button.clear {
+      background-color: #ff1a75;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    @media (max-width: 500px) {
+      .calculator {
+        border-radius: 0;
+        height: 100vh;
+        box-shadow: none;
+        justify-content: center;
+      }
+
+      .display {
+        font-size: 1.4rem;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="equation-preview" id="equationPreview"></div>
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+      <button onclick="clearDisplay()" class="clear">C</button>
+      <button onclick="deleteLast()">←</button>
+      <button onclick="append('(')">(</button>
+      <button onclick="append(')')">)</button>
+      <button onclick="append('/')">÷</button>
+
+      <button onclick="append('7')">7</button>
+      <button onclick="append('8')">8</button>
+      <button onclick="append('9')">9</button>
+      <button onclick="append('*')">×</button>
+      <button onclick="append('Math.sqrt(')">√</button>
+
+      <button onclick="append('4')">4</button>
+      <button onclick="append('5')">5</button>
+      <button onclick="append('6')">6</button>
+      <button onclick="append('-')">−</button>
+      <button onclick="append('**2')">x²</button>
+
+      <button onclick="append('1')">1</button>
+      <button onclick="append('2')">2</button>
+      <button onclick="append('3')">3</button>
+      <button onclick="append('+')">+</button>
+      <button onclick="append('.')">.</button>
+
+      <button onclick="append('0')">0</button>
+      <button onclick="append('Math.sin(')">sin</button>
+      <button onclick="append('Math.cos(')">cos</button>
+      <button onclick="append('Math.tan(')">tan</button>
+      <button onclick="calculate()" class="equal">=</button>
+
+      <button onclick="append('Math.log10(')">log</button>
+      <button onclick="append('Math.log(')">ln</button>
+      <button onclick="append('Math.PI')">π</button>
+      <button onclick="append('**')">xʸ</button>
+      <button onclick="toggleAngleMode()" id="angleModeBtn">RAD</button>
+
+      <button onclick="memoryAdd()">M+</button>
+      <button onclick="memoryRecall()">MR</button>
+      <button onclick="memoryClear()">MC</button>
+      <button onclick="append('')"></button>
+      <button onclick="append('')"></button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const equationPreview = document.getElementById('equationPreview');
+
+    let angleMode = 'RAD';
+    let memory = 0;
+
+    function append(value) {
+      if (display.textContent === '0' || display.textContent === 'Error') {
+        display.textContent = value;
+      } else {
+        display.textContent += value;
+      }
+      equationPreview.textContent = display.textContent;
+    }
+
+    function clearDisplay() {
+      display.textContent = '0';
+      equationPreview.textContent = '';
+    }
+
+    function deleteLast() {
+      display.textContent = display.textContent.slice(0, -1) || '0';
+      equationPreview.textContent = display.textContent;
+    }
+
+    function toggleAngleMode() {
+      angleMode = angleMode === 'RAD' ? 'DEG' : 'RAD';
+      document.getElementById('angleModeBtn').textContent = angleMode;
+    }
+
+    function toRadians(x) {
+      return x * (Math.PI / 180);
+    }
+
+    function calculate() {
+      try {
+        let expr = display.textContent;
+
+        if (angleMode === 'DEG') {
+          expr = expr
+            .replace(/Math\.sin\(([^)]+)\)/g, (_, val) => `Math.sin(toRadians(${val}))`)
+            .replace(/Math\.cos\(([^)]+)\)/g, (_, val) => `Math.cos(toRadians(${val}))`)
+            .replace(/Math\.tan\(([^)]+)\)/g, (_, val) => `Math.tan(toRadians(${val}))`);
+        }
+
+        const result = eval(expr);
+        display.textContent = result;
+        equationPreview.textContent = '';
+      } catch (e) {
+        display.textContent = 'Error';
+      }
+    }
+
+    function memoryAdd() {
+      try {
+        memory += parseFloat(display.textContent) || 0;
+      } catch {}
+    }
+
+    function memoryRecall() {
+      display.textContent = memory.toString();
+      equationPreview.textContent = 'MR';
+    }
+
+    function memoryClear() {
+      memory = 0;
+      equationPreview.textContent = 'MC cleared';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key;
+      if ("0123456789+-*/().".includes(key)) {
+        append(key);
+      } else if (key === "Enter") {
+        e.preventDefault();
+        calculate();
+      } else if (key === "Backspace") {
+        deleteLast();
+      } else if (key === "Escape") {
+        clearDisplay();
+      }
+    });
+  </script>
+</body>
+</html>
